@@ -52,3 +52,7 @@ mysql -u root -p flightms < database.sql
 
 
 ---
+
+## Contributors
+
+- Snehx-gif
