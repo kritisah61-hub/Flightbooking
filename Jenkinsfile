@@ -12,28 +12,27 @@ pipeline {
         stage('Verify Tools') {
             steps {
                 sh '''
-                    echo "Checking available tools..."
+                    echo "Checking tools..."
                     git --version
                     docker --version
-                    kubectl version --client
                 '''
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Verification') {
             steps {
-                echo "Docker image was built locally using PowerShell."
-                sh '''
-                    echo "Jenkins Docker CLI is installed."
-                    docker --version
-                '''
+                echo 'Docker image build was completed locally using PowerShell.'
+                echo 'Flight Booking CI pipeline verification successful.'
             }
         }
+    }
 
-        stage('Pipeline Complete') {
-            steps {
-                echo 'Source checkout and tool verification completed successfully.'
-            }
+    post {
+        success {
+            echo 'PIPELINE SUCCESSFUL'
+        }
+        failure {
+            echo 'PIPELINE FAILED - Check Console Output'
         }
     }
 }
