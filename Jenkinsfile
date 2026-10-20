@@ -2,6 +2,10 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = 'kritisah/flight-booking-app'
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -21,8 +25,26 @@ pipeline {
 
         stage('Build Verification') {
             steps {
-                echo 'Docker image build was completed locally using PowerShell.'
+                echo 'Docker image was built locally using PowerShell.'
                 echo 'Flight Booking CI pipeline verification successful.'
+            }
+        }
+
+        stage('Docker Hub Push') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        echo "Docker Hub credentials loaded successfully."
+                        echo "Image to publish: ${DOCKER_IMAGE}:latest"
+                        echo "Actual push will run after Docker daemon access is configured."
+                    '''
+                }
             }
         }
     }
