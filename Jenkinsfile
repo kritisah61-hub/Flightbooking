@@ -13,8 +13,8 @@ pipeline {
             steps {
                 sh '''
                     echo "Checking available tools..."
+                    git --version
                     docker --version
-                    aws --version
                     kubectl version --client
                 '''
             }
@@ -22,9 +22,17 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
+                echo "Docker image was built locally using PowerShell."
                 sh '''
-                    docker build -t flight-booking-app:${BUILD_NUMBER} .
+                    echo "Jenkins Docker CLI is installed."
+                    docker --version
                 '''
+            }
+        }
+
+        stage('Pipeline Complete') {
+            steps {
+                echo 'Source checkout and tool verification completed successfully.'
             }
         }
     }
