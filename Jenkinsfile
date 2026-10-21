@@ -1,8 +1,10 @@
+
 pipeline {
     agent any
 
     environment {
         DOCKER_IMAGE = 'kritisah/flight-booking-app'
+        KUBECONFIG = '/var/jenkins_home/.kube/config'
     }
 
     stages {
@@ -18,7 +20,8 @@ pipeline {
                     set -e
                     git --version
                     docker --version
-                    docker info
+                    kubectl version --client
+                    kubectl get nodes
                 '''
             }
         }
@@ -53,14 +56,31 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh '''
+                    set -e
+                    kubectl set image deployment/flight-booking \
+                        flight-booking=${DOCKER_IMAGE}:${BUILD_NUMBER}
+
+                    kubectl rollout status deployment/flight-booking \
+                        --timeout=180s
+
+                    kubectl get deployment flight-booking -o wide
+                    kubectl get pods
+                    kubectl get service flight-booking-service
+                '''
+            }
+        }
     }
 
     post {
         success {
-            echo 'Docker image built and pushed successfully.'
+            echo 'SUCCESS: Docker image pushed and Kubernetes deployment verified.'
         }
         failure {
-            echo 'Pipeline failed. Check Console Output.'
+            echo 'Pipeline failed. Check Console Output for the failing stage.'
         }
     }
 }
