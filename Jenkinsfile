@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
 
@@ -16,21 +15,25 @@ pipeline {
         stage('Verify Tools') {
             steps {
                 sh '''
-                    echo "Checking tools..."
+                    set -e
                     git --version
                     docker --version
+                    docker info
                 '''
             }
         }
 
-        stage('Build Verification') {
+        stage('Build Docker Image') {
             steps {
-                echo 'Docker image was built locally using PowerShell.'
-                echo 'Flight Booking CI pipeline verification successful.'
+                sh '''
+                    set -e
+                    docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} .
+                    docker tag ${DOCKER_IMAGE}:${BUILD_NUMBER} ${DOCKER_IMAGE}:latest
+                '''
             }
         }
 
-        stage('Docker Hub Push') {
+        stage('Push to Docker Hub') {
             steps {
                 withCredentials([
                     usernamePassword(
@@ -40,9 +43,12 @@ pipeline {
                     )
                 ]) {
                     sh '''
-                        echo "Docker Hub credentials loaded successfully."
-                        echo "Image to publish: ${DOCKER_IMAGE}:latest"
-                        echo "Actual push will run after Docker daemon access is configured."
+                        set -e
+                        echo "$DOCKER_TOKEN" | docker login \
+                            -u "$DOCKER_USER" --password-stdin
+                        docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
+                        docker push ${DOCKER_IMAGE}:latest
+                        docker logout
                     '''
                 }
             }
@@ -51,10 +57,10 @@ pipeline {
 
     post {
         success {
-            echo 'PIPELINE SUCCESSFUL'
+            echo 'Docker image built and pushed successfully.'
         }
         failure {
-            echo 'PIPELINE FAILED - Check Console Output'
+            echo 'Pipeline failed. Check Console Output.'
         }
     }
 }
