@@ -59,3 +59,5 @@ mysql -u root -p flightms < database.sql
 
 ## Deployment Verification
 The Flight Booking application is deployed on Kubernetes and verified through the browser dashboard.
+
+CI/CD automation verification completed.
